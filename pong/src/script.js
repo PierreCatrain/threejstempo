@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import {ft_ia} from './ia.js'
+// import {ft_ia} from './ia.js'
 
 // Initialisation de la scène
 const scene = new THREE.Scene();
