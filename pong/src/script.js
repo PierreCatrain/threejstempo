@@ -266,17 +266,35 @@ function moveTheBall()
     {
         while ((ball.angle >= Math.PI * 5 / 6 && ball.angle <= Math.PI * 7 / 6) || ball.angle <= Math.PI / 6 || ball.angle >= Math.PI * 11 / 6)
         {
-            ball.angle = Math.random() * 2 * Math.PI
+            // ball.angle = Math.random() * 2 * Math.PI
+            ball.angle = Math.PI * 1.5
         }
     }
-    const futurX = ball.mesh.position.x + ball.speed * Math.sin(ball.angle)
-    const futurZ = ball.mesh.position.z + ball.speed * Math.cos(ball.angle)
+    let futurX = ball.mesh.position.x + ball.speed * Math.sin(ball.angle)
+    let futurZ = ball.mesh.position.z + ball.speed * Math.cos(ball.angle)
 
-    // console.log(ball.mesh.position.x)
-    if (checkCollisionBallRaquette(futurX, futurZ, leftPaddle.position.x, leftPaddle.position.z, true) == true)
+
+    if (checkCollisionBallRaquette(futurX, futurZ, leftPaddle.position.x, leftPaddle.position.z, false, true) == true)
+    {
+        futurX = ball.mesh.position.x + ball.speed * Math.sin(ball.angle)
+        futurZ = ball.mesh.position.z + ball.speed * Math.cos(ball.angle)
+        ball.mesh.position.x = futurX
+        ball.mesh.position.z = futurZ
+        console.log('dessus')
+        console.log(ball.angle)
+
         return
-    else if (checkCollisionBallRaquette(futurX, futurZ, rightPaddle.position.x, rightPaddle.position.z, true) == true)
+    }
+    else if (checkCollisionBallRaquette(futurX, futurZ, rightPaddle.position.x, rightPaddle.position.z, false, true) == true)
+    {
+        futurX = ball.mesh.position.x + ball.speed * Math.sin(ball.angle)
+        futurZ = ball.mesh.position.z + ball.speed * Math.cos(ball.angle)
+        ball.mesh.position.x = futurX
+        ball.mesh.position.z = futurZ
+        console.log('dessous')
+        console.log(ball.angle)
         return
+    }
     if (checkCollision(5, -4, -5, -4, futurX, futurZ - 0.35) == true || checkCollision(-5, 4, 5, 4, futurX, futurZ + 0.35) == true)
         ball.angle += (Math.PI * 1.5 - ball.angle) * 2
     else if (checkCollision(6, 3, 6, -3, futurX + 0.35, futurZ) == true || checkCollision(-6, -3, -6, 3, futurX - 0.35, futurZ) == true)
@@ -291,24 +309,31 @@ function moveTheBall()
     else if (checkCollision(-5, -4, -6, -3, futurX - 0.35, futurZ - 0.35) == true || checkCollision(5, 4, 6, 3, futurX + 0.35, futurZ + 0.35) == true)
     {
         ball.angle += (Math.PI * 1.75 - ball.angle) * 2
-        ball.speed *= 1.25
+        ball.speed += 0.025
     }
     else if (checkCollision(-6, 3, -5, 4, futurX - 0.35, futurZ + 0.35) == true || checkCollision(6, -3, 5, -4, futurX + 0.35, futurZ - 0.35) == true)
     {
         ball.angle += (Math.PI * 1.25 - ball.angle) * 2
-        ball.speed *= 1.25
+        ball.speed += 0.025
     }
     else
     {
         ball.mesh.position.x = futurX
         ball.mesh.position.z = futurZ
     }
+}
 
-
+// pour les angles en radian vu qu'on fait que des += on peut avoir des angles enorme, la on le ramene a son equivalent compris entre 0 et 2 PI
+function simplfied_angle(angle)
+{
+    let tmp = angle
+    while(tmp - 2 * Math.PI >= 0)
+        tmp -= 2 * Math.PI
+    return tmp
 }
 
 // mode pour changer ou juste checker (true pour changer)
-function checkCollisionBallRaquette(cx, cz, rx, rz, mode)
+function checkCollisionBallRaquette(cx, cz, rx, rz, mode, checkfromball)
 {
     const left = rx - 0.25 - 0.35
     const right = rx + 0.25 + 0.35
@@ -322,8 +347,7 @@ function checkCollisionBallRaquette(cx, cz, rx, rz, mode)
 
     if (cx >= left && cx <= right && cz >= back && cz <= front)
     {
-        // console.log("collision 1")
-        if (mode == false)
+        if (mode == true)
             return true
 
         if (cx >= left && cx <= rx - 0.35 && cz >= back && cz <= front)
@@ -336,26 +360,59 @@ function checkCollisionBallRaquette(cx, cz, rx, rz, mode)
             hitBack = true
 
 
-        if ((hitLeft || hitRight) && !hitFront && !hitBack)
-        {
+        // if ((hitLeft || hitRight) && !hitFront && !hitBack)
+        // {
+        //     ball.angle += (Math.PI * 2 - ball.angle) * 2
+        //     // if ((hitRight && ball.angle >= Math.PI) || (hitLeft && ball.angle <= Math.PI))
+        //     console.log('here0')
+        // }
+        // else if ((hitFront || hitBack) && !hitLeft && !hitRight)
+        // {
+        //     ball.angle += (Math.PI * 1.5 - ball.angle) * 2
+        //     // if ((hitFront && (ball.angle >= Math.PI * 1.5 || ball.angle <= Math.PI * 0.5)) || (hitBack && ball.angle <= Math.PI * 1.5 && ball.angle >= Math.PI))
+            
+        // }
+
+
+
+        console.log('avant')
+        console.log(ball.angle)
+
+        if ((hitLeft && simplfied_angle(ball.angle) <= Math.PI) || (hitRight && simplfied_angle(ball.angle) >= Math.PI))
             ball.angle += (Math.PI * 2 - ball.angle) * 2
-            // if ((hitRight && ball.angle >= Math.PI) || (hitLeft && ball.angle <= Math.PI))
-        }
-        else if ((hitFront || hitBack) && !hitLeft && !hitRight)
+        else if (hitFront)     
         {
-            ball.angle += (Math.PI * 1.5 - ball.angle) * 2
-            // if ((hitFront && (ball.angle >= Math.PI * 1.5 || ball.angle <= Math.PI * 0.5)) || (hitBack && ball.angle <= Math.PI * 1.5 && ball.angle >= Math.PI))
+            already_change_angle = true
+            console.log('front')
+            if (simplfied_angle(ball.angle) <= Math.PI)// palet en direction de la droite
+            ball.angle = Math.PI * 0.25
+            else// palet en direction de la gauche
+            ball.angle = Math.PI * 1.75
         }
-        if ((hitLeft && hitBack) || (hitRight && hitFront))
+        else if (hitBack)
         {
-            ball.angle += (Math.PI * 2 - ball.angle) * 2
-            // ball.speed *= 1.2
+            already_change_angle = true
+            console.log('back')
+            if (simplfied_angle(ball.angle) <= Math.PI)// palet en direction de la droite
+            ball.angle = Math.PI * 0.75
+            else// palet en direction de la gauche
+            ball.angle = Math.PI * 1.25
         }
-        else if ((hitRight && hitBack) || (hitLeft && hitFront))
-        {
-            ball.angle += (Math.PI * 2 - ball.angle) * 2
-            // ball.speed *= 1.2
-        }
+        
+                
+        // if ((hitLeft && hitBack) || (hitRight && hitFront))
+        // {
+        //     console.log(ball.angle)
+        //     ball.angle += (Math.PI * 2 - ball.angle) * 2
+        //     console.log(ball.angle)
+        //     // ball.speed *= 1.2
+        //     console.log('here2')
+        // }
+        // else if ((hitRight && hitBack) || (hitLeft && hitFront))
+        // {
+        //     ball.angle += (Math.PI * 2 - ball.angle) * 2
+        //     // ball.speed *= 1.2
+        // }
         return true
     }
     return false
@@ -365,34 +422,37 @@ function checkCollisionBallRaquette(cx, cz, rx, rz, mode)
 
 const speed = 0.08
 
+let already_change_angle = false
 function moveThePad()
 {
     
-    if (checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x, leftPaddle.position.z) == true)
-        return
+    // if (checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x, leftPaddle.position.z) == true)
+    //     return
 
-    if (leftPadMove.up == true && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x + speed, leftPaddle.position.z, false) == false)
+    already_change_angle = false
+    
+    if (leftPadMove.up == true && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x + speed, leftPaddle.position.z, already_change_angle, false) == false)
     {
         if (leftPaddle.position.x + speed <= -1.75 )
             leftPaddle.position.x += speed
         else
             leftPaddle.position.x = -1.75
     }
-    if (leftPadMove.left == true && checkCollision(-5, -4, -6, -3, leftPaddle.position.x - 0.25, leftPaddle.position.z -0.6 - speed) == false && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x, leftPaddle.position.z - speed, false) == false)
+    if (leftPadMove.left == true && checkCollision(-5, -4, -6, -3, leftPaddle.position.x - 0.25, leftPaddle.position.z -0.6 - speed) == false && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x, leftPaddle.position.z - speed, already_change_angle, false) == false)
     {
         if (leftPaddle.position.z - speed >= -3.4)
             leftPaddle.position.z -= speed
         else
             leftPaddle.position.z = -3.4
     }
-    if (leftPadMove.down == true && checkCollision(-5, -4, -6, -3, leftPaddle.position.x - 0.25 - speed, leftPaddle.position.z -0.6) == false && checkCollision(-6, 3, -5, 4, leftPaddle.position.x - 0.25 - speed, leftPaddle.position.z + 0.6) == false && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x - speed, leftPaddle.position.z, false) == false)
+    if (leftPadMove.down == true && checkCollision(-5, -4, -6, -3, leftPaddle.position.x - 0.25 - speed, leftPaddle.position.z -0.6) == false && checkCollision(-6, 3, -5, 4, leftPaddle.position.x - 0.25 - speed, leftPaddle.position.z + 0.6) == false && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x - speed, leftPaddle.position.z, already_change_angle, false) == false)
     {
         if (leftPaddle.position.x - speed >= -5.75 )
             leftPaddle.position.x -= speed
         else
             leftPaddle.position.x = -5.75
     }
-    if (leftPadMove.right == true && checkCollision(-6, 3, -5, 4, leftPaddle.position.x - 0.25, leftPaddle.position.z + 0.6 + speed) == false && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x, leftPaddle.position.z + speed, false) == false)
+    if (leftPadMove.right == true && checkCollision(-6, 3, -5, 4, leftPaddle.position.x - 0.25, leftPaddle.position.z + 0.6 + speed) == false && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, leftPaddle.position.x, leftPaddle.position.z + speed, already_change_angle, false) == false)
     {
         if (leftPaddle.position.z + speed <= 3.4)
             leftPaddle.position.z += speed
@@ -400,25 +460,30 @@ function moveThePad()
             leftPaddle.position.z = 3.4
     }
 
-    if (rightPadMove.up == true && rightPaddle.position.x - speed >= 1.75)
-        rightPaddle.position.x -= speed
-    else if (rightPadMove.up == true)
-        rightPaddle.position.x = 1.75
-    if (rightPadMove.left == true && checkCollision(5, 4, 6, 3, rightPaddle.position.x + 0.25, rightPaddle.position.z + 0.6 + speed) == false)
+
+
+    if (rightPadMove.up == true && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, rightPaddle.position.x - speed, rightPaddle.position.z, already_change_angle, false) == false)
+    {
+        if (rightPaddle.position.x - speed >= 1.75)
+            rightPaddle.position.x -= speed
+        else
+            rightPaddle.position.x = 1.75
+    }
+    if (rightPadMove.left == true && checkCollision(5, 4, 6, 3, rightPaddle.position.x + 0.25, rightPaddle.position.z + 0.6 + speed) == false  && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, rightPaddle.position.x, rightPaddle.position.z + speed, already_change_angle, false) == false)
     {
         if (rightPaddle.position.z + speed <= 3.4)
             rightPaddle.position.z += speed
         else
             rightPaddle.position.z = 3.4
     }
-    if (rightPadMove.down == true && checkCollision(6, -3, 5, -4, rightPaddle.position.x + 0.25 + speed, rightPaddle.position.z - 0.6) == false && checkCollision(5, 4, 6, 3, rightPaddle.position.x + 0.25 + speed, rightPaddle.position.z + 0.6) == false)
+    if (rightPadMove.down == true && checkCollision(6, -3, 5, -4, rightPaddle.position.x + 0.25 + speed, rightPaddle.position.z - 0.6) == false && checkCollision(5, 4, 6, 3, rightPaddle.position.x + 0.25 + speed, rightPaddle.position.z + 0.6) == false  && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, rightPaddle.position.x + speed, rightPaddle.position.z, already_change_angle, false) == false)
     {
         if (rightPaddle.position.x + speed <= 5.75)
             rightPaddle.position.x += speed
         else
             rightPaddle.position.x = 5.75
     }
-    if (rightPadMove.right == true && checkCollision(6, -3, 5, -4, rightPaddle.position.x + 0.25, rightPaddle.position.z - 0.6 - speed) == false)
+    if (rightPadMove.right == true && checkCollision(6, -3, 5, -4, rightPaddle.position.x + 0.25, rightPaddle.position.z - 0.6 - speed) == false  && checkCollisionBallRaquette(ball.mesh.position.x, ball.mesh.position.z, rightPaddle.position.x, rightPaddle.position.z - speed, already_change_angle, false) == false)
     {
         if (rightPaddle.position.z - speed >= -3.4)
             rightPaddle.position.z -= speed
